@@ -1,9 +1,10 @@
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+
 import App from './App.tsx';
-import { QueryProvider } from 'src/app/providers/query-provider.tsx';
 
 createRoot(document.getElementById('root')!).render(
-  <QueryProvider>
+  <StrictMode>
     <App />
-  </QueryProvider>,
+  </StrictMode>,
 );

@@ -10,12 +10,12 @@
 
     "baseUrl": ".",
     "paths": {
-      "@features/*": ["src/features"],
-      "@shared/*": ["src/shared"],
-      "@widgets/*": ["src/widgets"],
-      "@page/*": ["src/page"],
-      "@entities/*": ["src/entities"],
-      "@app/*": ["src/app"]
+      "@features/*": ["src/features/*"],
+      "@shared/*": ["src/shared/*"],
+      "@widgets/*": ["src/widgets/*"],
+      "@page/*": ["src/page/*"],
+      "@entities/*": ["src/entities/*"],
+      "@app/*": ["src/app/*"]
     },
 
     /* Bundler mode */
