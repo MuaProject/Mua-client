@@ -11,6 +11,8 @@ import { NotificationPanel } from '@widgets/main/notification/notificationPanel'
 import { useNavigate } from 'react-router-dom';
 import { FloatingActionButton } from '@shared/ui/floatingActionButton';
 import PlusIcon from '@shared/assets/icon/plus.svg?react';
+import { useQuery } from '@tanstack/react-query';
+import { FEED_QUERY_OPTIONS } from '@shared/api/domain/main/query';
 
 export type SortType = 'latest' | 'near';
 type SheetType = 'location' | 'sort' | null;
@@ -76,6 +78,7 @@ const MainPage = () => {
   const [sortType, setSortType] = useState<SortType>('latest');
   const [openSheet, setOpenSheet] = useState<SheetType>(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const { data } = useQuery(FEED_QUERY_OPTIONS.LIST());
   return (
     <div>
       <TopNavigation

@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:api": "openapi-typescript http://3.34.130.196:8081/v3/api-docs -o src/shared/types/schema.ts"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.90.17",
@@ -40,6 +41,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8.5.6",
     "prettier": "^3.7.4",
     "tailwindcss": "^3.4.19",
