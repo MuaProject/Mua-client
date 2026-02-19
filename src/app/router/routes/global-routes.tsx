@@ -1,26 +1,48 @@
 import { routePath } from '@app/router/path';
-import { CreatPage, MainPage, MyPage, PostDetailPage } from '@app/router/lazy';
-import NickNameChage from '@page/my/nickName-change';
+import {
+  CreatPage,
+  LoginCallbackPage,
+  MainPage,
+  MyPage,
+  NickNameChagePage,
+  OnboardingPage,
+  PostDetailPage,
+} from '@app/router/lazy';
+
+import PrivateRoute from '@app/router/private-route';
 
 export const globalRoutes = [
   {
-    path: routePath.MAIN,
-    element: <MainPage />,
+    path: routePath.ONBOARDING,
+    element: <OnboardingPage />,
   },
   {
-    path: '/my',
-    element: <MyPage />,
+    path: routePath.LOGIN_CALLBACK,
+    element: <LoginCallbackPage />,
   },
   {
-    path: '/create',
-    element: <CreatPage />,
-  },
-  {
-    path: '/posts/:id',
-    element: <PostDetailPage />,
-  },
-  {
-    path: '/my/nickname',
-    element: <NickNameChage />,
+    element: <PrivateRoute />,
+    children: [
+      {
+        path: routePath.MAIN,
+        element: <MainPage />,
+      },
+      {
+        path: routePath.MY,
+        element: <MyPage />,
+      },
+      {
+        path: routePath.CREATE,
+        element: <CreatPage />,
+      },
+      {
+        path: routePath.DETAIL,
+        element: <PostDetailPage />,
+      },
+      {
+        path: routePath.NICKNAMECHAGE,
+        element: <NickNameChagePage />,
+      },
+    ],
   },
 ];
