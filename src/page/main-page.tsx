@@ -12,53 +12,11 @@ import { useNavigate } from 'react-router-dom';
 import { FloatingActionButton } from '@shared/ui/floatingActionButton';
 import PlusIcon from '@shared/assets/icon/plus.svg?react';
 import { useQuery } from '@tanstack/react-query';
-import { FEED_QUERY_OPTIONS } from '@shared/api/domain/main/query';
-
+import { FEED_QUERY_OPTIONS } from '@shared/api/domain/feeds/query';
+import { formatDate } from '@shared/utils/date';
 export type SortType = 'latest' | 'near';
 type SheetType = 'location' | 'sort' | null;
 
-const mockCards = [
-  {
-    id: 1,
-    image: 'https://via.placeholder.com/102x128',
-    title: '역삼동 공터에서 경도 할 사람 찾고 있어요!! (성인만)',
-    date: '01.01 / 13:40',
-    count: '1 / 20',
-    location: '개나리 공원',
-  },
-  {
-    id: 2,
-    image: 'https://via.placeholder.com/102x128',
-    title: '주말에 같이 운동하실 분 구합니다',
-    date: '01.02 / 10:00',
-    count: '3 / 10',
-    location: '역삼 체육관',
-  },
-  {
-    id: 3,
-    image: 'https://via.placeholder.com/102x128',
-    title: '역삼동 공터에서 경도 할 사람 찾고 있어요!! (성인만)',
-    date: '01.01 / 13:40',
-    count: '1 / 20',
-    location: '개나리 공원',
-  },
-  {
-    id: 4,
-    image: 'https://via.placeholder.com/102x128',
-    title: '역삼동 공터에서 경도 할 사람 찾고 있어요!! (성인만)',
-    date: '01.01 / 13:40',
-    count: '1 / 20',
-    location: '개나리 공원',
-  },
-  {
-    id: 5,
-    image: 'https://via.placeholder.com/102x128',
-    title: '역삼동 공터에서 경도 할 사람 찾고 있어요!! (성인만)',
-    date: '01.01 / 13:40',
-    count: '1 / 20',
-    location: '개나리 공원',
-  },
-];
 const mockNotifications = [
   {
     value:
@@ -79,6 +37,7 @@ const MainPage = () => {
   const [openSheet, setOpenSheet] = useState<SheetType>(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   const { data } = useQuery(FEED_QUERY_OPTIONS.LIST());
+  if (!data) return null;
   return (
     <div>
       <TopNavigation
@@ -118,15 +77,15 @@ const MainPage = () => {
         />
       </div>
       <div className="flex flex-col gap-[2rem] items-center">
-        {mockCards.map((card) => (
+        {data.feeds!.map((feed) => (
           <Card
-            key={card.id}
-            image={card.image}
-            title={card.title}
-            date={card.date}
-            count={card.count}
-            location={card.location}
-            onClick={() => navigate(`/posts/${card.id}`)}
+            key={feed.feedId!}
+            image={feed.image!}
+            title={feed.title!}
+            date={formatDate(feed.playDate!)}
+            count={`${feed.playCount!}`}
+            location={feed.playGround!}
+            onClick={() => navigate(`/posts/${feed.feedId}`)}
           />
         ))}
       </div>

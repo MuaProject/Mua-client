@@ -1,8 +1,11 @@
-import { queryOptions } from '@tanstack/react-query';
+import { mutationOptions, queryOptions } from '@tanstack/react-query';
 import { api } from '@shared/api/config/instance';
 import { END_POINT } from '@shared/api/end-point';
 import { FEED_QUERY_KEY } from '@shared/api/query-key';
-import type { GetFeedsResponse } from '@shared/types/type';
+import type {
+  CreateFeedRequest,
+  GetFeedsResponse,
+} from '@shared/types/feeds/type';
 
 const getFeeds = async (): Promise<GetFeedsResponse> => {
   return api.get(END_POINT.FEED.LIST).json<GetFeedsResponse>();
@@ -13,5 +16,16 @@ export const FEED_QUERY_OPTIONS = {
     queryOptions({
       queryKey: FEED_QUERY_KEY.LIST(),
       queryFn: getFeeds,
+    }),
+};
+
+const postFeed = async (body: CreateFeedRequest) => {
+  return api.post(END_POINT.FEED.LIST, { json: body }).json();
+};
+
+export const FEED_MUTATION_OPTIONS = {
+  CREATE: () =>
+    mutationOptions({
+      mutationFn: postFeed,
     }),
 };

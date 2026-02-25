@@ -377,6 +377,14 @@ export interface components {
             /** @enum {string} */
             status?: "PENDING" | "APPROVED" | "REJECTED" | "CANCELED";
         };
+        FeedCursorResponse: {
+            feeds?: components["schemas"]["FeedResponse"][];
+            /** Format: int64 */
+            nextCursorId?: number;
+            /** Format: date-time */
+            nextCursorCreatedAt?: string;
+            hasNext?: boolean;
+        };
         FeedResponse: {
             /** Format: int64 */
             feedId?: number;
@@ -519,9 +527,7 @@ export interface operations {
     refresh: {
         parameters: {
             query?: never;
-            header: {
-                "Refresh-Token": string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -541,9 +547,7 @@ export interface operations {
     logout: {
         parameters: {
             query?: never;
-            header: {
-                "Refresh-Token": string;
-            };
+            header?: never;
             path?: never;
             cookie?: never;
         };
@@ -626,7 +630,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["FeedResponse"];
+                    "application/json": components["schemas"]["FeedCursorResponse"];
                 };
             };
         };
