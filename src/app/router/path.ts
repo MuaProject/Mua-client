@@ -3,7 +3,7 @@ export const routePath = {
   MAIN: '/main',
   MY: '/my',
   CREATE: '/create',
-  DETAIL: '/posts/:id',
+  DETAIL: '/posts/:feedId',
   NICKNAMECHAGE: '/my/nickname',
   LOGIN_CALLBACK: '/oauth/success',
 } as const;
