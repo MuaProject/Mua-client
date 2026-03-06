@@ -1,5 +1,5 @@
 import { TopNavigation } from '@shared/ui/topNavigation';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import ArrowLeftIcon from '@shared/assets/icon/arrow-left.svg?react';
 import UploadIcon from '@shared/assets/icon/upload.svg?react';
 import { Carousel } from '@widgets/postDetail/carousel/carousel';
@@ -10,81 +10,16 @@ import Input from '@shared/ui/input';
 import { FloatingActionButton } from '@shared/ui/floatingActionButton';
 import SendIcon from '@shared/assets/icon/send.svg?react';
 import { Button } from '@shared/ui/button';
-export const mockComments: CommentItemProps[] = [
-  // ===== 시스템 메시지 (최상단 고정 대상) =====
-  {
-    id: 100,
-    author: '시스템',
-    time: '방금 전',
-    value: '홍길동님의 참가 신청이 승인 대기중입니다.',
-    parentId: null,
-    type: 'system',
-    status: 'pending',
-  },
-  {
-    id: 101,
-    author: '시스템',
-    time: '10분 전',
-    value: '김철수님의 참가 신청이 승인되었습니다.',
-    parentId: null,
-    type: 'system',
-    status: 'approved',
-  },
-  {
-    id: 102,
-    author: '시스템',
-    time: '30분 전',
-    value: '이영희님의 참가 신청이 거절되었습니다.',
-    parentId: null,
-    type: 'system',
-    status: 'rejected',
-  },
+import { useQuery } from '@tanstack/react-query';
+import { FEED_QUERY_OPTIONS } from '@shared/api/domain/feeds/query';
 
-  // ===== 일반 댓글 =====
+const mockComments: CommentItemProps[] = [
   {
     id: 1,
     author: '승택',
     time: '19시간 전',
     value: '제발 저요!!!',
     parentId: null,
-    type: 'user',
-  },
-
-  // ===== 대댓글 (id:1의 답글) =====
-  {
-    id: 2,
-    author: '작성자',
-    time: '18시간 전',
-    value: '확인했어요! 잠시만 기다려주세요.',
-    parentId: 1,
-    type: 'user',
-  },
-  {
-    id: 3,
-    author: '승택',
-    time: '17시간 전',
-    value: '감사합니다 🙏',
-    parentId: 1,
-    type: 'user',
-  },
-
-  // ===== 다른 일반 댓글 =====
-  {
-    id: 4,
-    author: '홍길동',
-    time: '2시간 전',
-    value: '저도 가능할까요?',
-    parentId: null,
-    type: 'user',
-  },
-
-  // ===== 대댓글 (id:4의 답글) =====
-  {
-    id: 5,
-    author: '작성자',
-    time: '1시간 전',
-    value: '네! 신청 남겨주세요.',
-    parentId: 4,
     type: 'user',
   },
 ];
@@ -95,27 +30,34 @@ const handleShare = async () => {
   if (navigator.share) {
     try {
       await navigator.share({
-        title: '역삼동 공터에서 경도 할 사람 찾고 있어요!',
-        text: '같이 경도 하실 분 구해요!',
+        title: '공유하기',
+        text: '게시글을 확인해보세요!',
         url,
       });
-    } catch (error) {
+    } catch {
       console.log('공유 취소');
     }
-  } else {
-    // fallback은 아래에서 설명
   }
 };
 
-const isOwner = false;
-const isApplied = false;
-const isClosed = false;
-
-const canApply = !isOwner && !isApplied && !isClosed;
-
 const PostDetailPage = () => {
   const navigate = useNavigate();
+  const { feedId } = useParams();
+  const numericFeedId = Number(feedId);
 
+  const { data, isLoading } = useQuery(
+    FEED_QUERY_OPTIONS.DETAIL(numericFeedId),
+  );
+  if (isLoading) return <div>loading...</div>;
+
+  if (!data) return <div>no data</div>;
+
+  const isOwner = false;
+  const isApplied = false;
+  const isClosed = false;
+
+  const canApply = !isOwner && !isApplied && !isClosed;
+  console.log('feed detail:', data);
   return (
     <div>
       <TopNavigation
@@ -124,25 +66,33 @@ const PostDetailPage = () => {
         onLeftClick={() => navigate(-1)}
         onRightClick={handleShare}
       />
+
+      {/* 🔥 이미지 */}
       <Carousel>
-        <img src="/img/1.jpg" alt="" />
-        <img src="/img/2.jpg" alt="" />
-        <img src="/img/3.jpg" alt="" />
+        <img src={data.image} alt="" />
       </Carousel>
+
+      {/* 🔥 제목 */}
       <p className="h-[10.6rem] px-[2.4rem] py-[2rem] typo-h2 border-b">
-        역삼동 공터에서 경도 할 사람 찾고 있어요!!(성인만)
+        {data.title}
       </p>
+
+      {/* 🔥 상세 정보 */}
       <div className="flex items-center flex-col px-[2.4rem] justify-center">
-        <DetailInfo />
-        <p className="flex typo-body1  py-[2rem] border-b">
-          {
-            '역삼동 공터에서 경도 하실 분 구합니다~~ 20세 이상 성인분들만 모집하고 있어요! 즐겁게 하실 분들만 신청해주셨으면 좋겠어요~'
-          }
-        </p>
+        <DetailInfo
+          playDate={data.playDate}
+          playCount={data.playCount}
+          location={data.playGround}
+          writerNickname={data.writer?.nickname}
+        />
+        <p className="flex typo-body1 py-[2rem] border-b">{data.description}</p>
       </div>
+
+      {/* 🔥 댓글 (아직 mock) */}
       <div className="px-[2.4rem] py-[2rem] border-b">
         <Comment comments={mockComments} />
       </div>
+
       {canApply && (
         <div className="flex flex-col items-center px-[2.4rem] pt-[2rem]">
           <Button>참가 신청하기</Button>

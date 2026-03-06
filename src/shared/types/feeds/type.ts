@@ -5,3 +5,6 @@ export type GetFeedsResponse =
 
 export type CreateFeedRequest =
   paths['/api/feeds']['post']['requestBody']['content']['application/json'];
+
+export type GetFeedDetailResponse =
+  paths['/api/feeds/{feedId}']['get']['responses']['200']['content']['application/json'];
