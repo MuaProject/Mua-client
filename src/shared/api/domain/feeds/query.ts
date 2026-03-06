@@ -33,6 +33,7 @@ export const FEED_QUERY_OPTIONS = {
       queryKey: FEED_QUERY_KEY.DETAIL(feedId),
       queryFn: () => getFeedDetail(feedId),
       enabled: !!feedId,
+      staleTime: 0,
     }),
 };
 

@@ -1,19 +1,20 @@
 import MessageIcon from '@shared/assets/icon/message-square.svg?react';
 import { Chip, type ApprovalStatus } from '@widgets/postDetail/chip/chip';
-export interface CommentItemProps {
-  id: number;
-  author: string;
-  time: string;
-  value: string;
-  parentId?: number | null;
-  type?: 'user' | 'system';
 
-  status?: ApprovalStatus;
-  applicantId?: number;
+export interface CommentItemProps {
+  commentId?: number;
+  nickname?: string;
+  description?: string;
+  parentId?: number | null;
+  commentType?: string;
+  depth?: number;
+  memberId?: number;
+  createdAt?: string;
 }
 
 interface CommentItemUIProps extends CommentItemProps {
   isOwner?: boolean;
+  status?: ApprovalStatus;
   onChangeApproval?: (
     commentId: number,
     status: Exclude<ApprovalStatus, 'pending'>,
@@ -21,27 +22,25 @@ interface CommentItemUIProps extends CommentItemProps {
 }
 
 export function CommentItem({
-  author,
-  time,
-  value,
-  type = 'user',
+  nickname,
+  description,
+  commentType = 'USER',
   status = 'pending',
   isOwner = false,
   onChangeApproval,
-  id,
+  commentId,
 }: CommentItemUIProps) {
-  const isSystem = type === 'system';
+  const isSystem = commentType === 'SYSTEM';
 
   return (
     <div className="flex gap-[0.8rem]">
       <img className="w-[3.6rem] h-[3.6rem] rounded-full border" />
 
       <div className="flex flex-col flex-1">
-        {/* 상단 라인: 작성자/시간 + (system이면 chip 우측) */}
+        {/* 상단 라인 */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-[0.4rem]">
-            <span className="typo-body3">{author}</span>
-            <span className="typo-caption">{time}</span>
+            <span className="typo-body3">{nickname}</span>
           </div>
 
           {isSystem &&
@@ -49,7 +48,7 @@ export function CommentItem({
               <Chip
                 mode="action"
                 status={status}
-                onChange={(next) => onChangeApproval?.(id, next)}
+                onChange={(next) => onChangeApproval?.(commentId!, next)}
               />
             ) : (
               <Chip mode="display" status={status} />
@@ -58,7 +57,7 @@ export function CommentItem({
 
         {/* 본문 */}
         <div className="mt-[0.4rem]">
-          <p className="typo-body1 whitespace-pre-line">{value}</p>
+          <p className="typo-body1 whitespace-pre-line">{description}</p>
 
           {!isSystem && (
             <button className="mt-[0.6rem] flex gap-[0.4rem] items-center typo-caption text-gray-500">
