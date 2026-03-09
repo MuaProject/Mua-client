@@ -5,24 +5,20 @@ import UploadIcon from '@shared/assets/icon/upload.svg?react';
 import { Carousel } from '@widgets/postDetail/carousel/carousel';
 import { DetailInfo } from '@widgets/postDetail/detail-info';
 import { Comment } from '@widgets/postDetail/comment/comment';
-import type { CommentItemProps } from '@widgets/postDetail/comment/comment-item';
 import Input from '@shared/ui/input';
 import { FloatingActionButton } from '@shared/ui/floatingActionButton';
 import SendIcon from '@shared/assets/icon/send.svg?react';
 import { Button } from '@shared/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { FEED_QUERY_OPTIONS } from '@shared/api/domain/feeds/query';
-
-const mockComments: CommentItemProps[] = [
-  {
-    id: 1,
-    author: '승택',
-    time: '19시간 전',
-    value: '제발 저요!!!',
-    parentId: null,
-    type: 'user',
-  },
-];
+import { useMutation } from '@tanstack/react-query';
+import {
+  PARTICIPATION_MUTATION_OPTIONS,
+  PARTICIPATION_QUERY_OPTIONS,
+} from '@shared/api/domain/participations/query';
+import { getMyMemberId } from '@shared/utils/auth';
+import { COMMENT_QUERY_OPTIONS } from '@shared/api/domain/comments/query';
+import { queryClient } from '@app/providers/query-client';
 
 const handleShare = async () => {
   const url = window.location.href;
@@ -44,6 +40,57 @@ const PostDetailPage = () => {
   const navigate = useNavigate();
   const { feedId } = useParams();
   const numericFeedId = Number(feedId);
+  const { mutate: applyParticipation } = useMutation({
+    ...PARTICIPATION_MUTATION_OPTIONS.APPLY(),
+    onSuccess: () => {
+      console.log('✅ 참가 신청 성공');
+
+      queryClient.invalidateQueries({
+        queryKey: ['participations', numericFeedId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['comments', numericFeedId],
+      });
+    },
+
+    onError: (error) => {
+      console.error('❌ 참가 신청 실패:', error);
+    },
+  });
+  const { data: participants } = useQuery(
+    PARTICIPATION_QUERY_OPTIONS.LIST(numericFeedId),
+  );
+  const { data: commentsData } = useQuery(
+    COMMENT_QUERY_OPTIONS.LIST(numericFeedId),
+  );
+  const { mutate: approveParticipation } = useMutation({
+    ...PARTICIPATION_MUTATION_OPTIONS.APPROVE(),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['participations', numericFeedId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['comments', numericFeedId],
+      });
+    },
+  });
+
+  const { mutate: rejectParticipation } = useMutation({
+    ...PARTICIPATION_MUTATION_OPTIONS.REJECT(),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['participations', numericFeedId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ['comments', numericFeedId],
+      });
+    },
+  });
 
   const { data, isLoading } = useQuery(
     FEED_QUERY_OPTIONS.DETAIL(numericFeedId),
@@ -52,12 +99,14 @@ const PostDetailPage = () => {
 
   if (!data) return <div>no data</div>;
 
-  const isOwner = false;
-  const isApplied = false;
+  const myId = getMyMemberId();
+
+  const isOwner = data.writer?.writerId === myId;
+  const isApplied = participants?.some((p) => p.applicantId === myId) ?? false;
   const isClosed = false;
 
   const canApply = !isOwner && !isApplied && !isClosed;
-  console.log('feed detail:', data);
+
   return (
     <div>
       <TopNavigation
@@ -88,23 +137,35 @@ const PostDetailPage = () => {
         <p className="flex typo-body1 py-[2rem] border-b">{data.description}</p>
       </div>
 
-      {/* 🔥 댓글 (아직 mock) */}
       <div className="px-[2.4rem] py-[2rem] border-b">
-        <Comment comments={mockComments} />
+        <Comment
+          comments={commentsData ?? []}
+          participants={participants}
+          isOwner={isOwner}
+          onChangeApproval={(participationId, status) => {
+            if (status === 'approved') {
+              approveParticipation(participationId);
+            } else {
+              rejectParticipation(participationId);
+            }
+          }}
+        />
       </div>
 
       {canApply && (
         <div className="flex flex-col items-center px-[2.4rem] pt-[2rem]">
-          <Button>참가 신청하기</Button>
-          <div className="flex w-full gap-[1.6rem] py-[1.4rem]">
-            <Input inputSize="sm" placeholder="댓글을 입력해주세요" />
-            <FloatingActionButton
-              mode="inline"
-              icon={<SendIcon width={'2rem'} height={'2rem'} />}
-            />
-          </div>
+          <Button onClick={() => applyParticipation(numericFeedId)}>
+            참가 신청하기
+          </Button>
         </div>
       )}
+      <div className="flex w-full gap-[1.6rem] py-[1.4rem] px-[2.4rem]">
+        <Input inputSize="sm" placeholder="댓글을 입력해주세요" />
+        <FloatingActionButton
+          mode="inline"
+          icon={<SendIcon width={'2rem'} height={'2rem'} />}
+        />
+      </div>
     </div>
   );
 };
