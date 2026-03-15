@@ -3,22 +3,9 @@ import ArrowLeftIcon from '@shared/assets/icon/arrow-left.svg?react';
 import BellIcon from '@shared/assets/icon/bell.svg?react';
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { NotificationPanel } from '@widgets/main/notification/notificationPanel';
+import { NotificationPopover } from '@widgets/main/notification/notification-popover';
 import Input from '@shared/ui/input';
 import { Button } from '@shared/ui/button';
-
-const mockNotifications = [
-  {
-    value:
-      '“역삼동 공터에서 경도하실 분 찾아요!” 게임에서 참가가 확정되었습니다.',
-    time: '방금 전',
-  },
-  {
-    value:
-      '“역삼동 공터에서 경도하실 분 찾아요!” 게임에서 참가가 확정되었습니다.',
-    time: '10분 전',
-  },
-];
 
 const NickNameChage = () => {
   const navigate = useNavigate();
@@ -31,20 +18,10 @@ const NickNameChage = () => {
         onLeftClick={() => navigate(-1)}
         onRightClick={() => setIsNotificationOpen((prev) => !prev)}
       />
-      {isNotificationOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsNotificationOpen(false)}
-          />
-          <div
-            className="absolute right-[2.4rem] top-[5.6rem] z-50"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <NotificationPanel notifications={mockNotifications} />
-          </div>
-        </>
-      )}
+      <NotificationPopover
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+      />
       <p className="typo-h1 h-[6.9rem] px-[2.4rem]">닉네임 변경</p>
       <div className="flex flex-col gap-[2rem] px-[2.4rem]">
         <div className="flex flex-col gap-[0.8rem]">
