@@ -14,6 +14,9 @@ import PlusIcon from '@shared/assets/icon/plus.svg?react';
 import { useQuery } from '@tanstack/react-query';
 import { FEED_QUERY_OPTIONS } from '@shared/api/domain/feeds/query';
 import { formatDate } from '@shared/utils/date';
+import type { LocationSelection } from '@features/location-picker/types';
+import { loadKakaoMap } from '@shared/lib/kakao-map/load-kakao-map';
+
 export type SortType = 'latest' | 'near';
 type SheetType = 'location' | 'sort' | null;
 
@@ -32,12 +35,91 @@ const mockNotifications = [
 
 const MainPage = () => {
   const navigate = useNavigate();
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState<LocationSelection | null>(null);
+  const [currentLocation, setCurrentLocation] =
+    useState<LocationSelection | null>(null);
   const [sortType, setSortType] = useState<SortType>('latest');
   const [openSheet, setOpenSheet] = useState<SheetType>(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  const { data } = useQuery(FEED_QUERY_OPTIONS.LIST());
+
+  const loadCurrentLocation = () =>
+    new Promise<LocationSelection>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('현재 위치를 지원하지 않는 환경입니다.'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const kakao = await loadKakaoMap();
+            const geocoder = new kakao.maps.services.Geocoder();
+
+            geocoder.coord2Address(
+              position.coords.longitude,
+              position.coords.latitude,
+              (result: any[], status: string) => {
+                const address =
+                  status === kakao.maps.services.Status.OK
+                    ? result[0]?.road_address?.address_name ||
+                      result[0]?.address?.address_name ||
+                      '현재 위치'
+                    : '현재 위치';
+
+                resolve({
+                  name: address,
+                  address,
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                });
+              },
+            );
+          } catch {
+            resolve({
+              name: '현재 위치',
+              address: '현재 위치',
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          }
+        },
+        () => {
+          reject(
+            new Error(
+              '현재 위치를 가져오지 못했습니다. 브라우저 위치 권한을 확인해주세요.',
+            ),
+          );
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        },
+      );
+    });
+
+  const feedListQuery = FEED_QUERY_OPTIONS.LIST(
+    sortType === 'near'
+      ? currentLocation
+        ? {
+            sort: 'DISTANCE',
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+          }
+        : undefined
+      : location
+        ? {
+            sort: 'LATEST',
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }
+        : {
+            sort: 'LATEST',
+          },
+  );
+  const { data } = useQuery(feedListQuery);
   if (!data) return null;
+
   return (
     <div>
       <TopNavigation
@@ -68,7 +150,7 @@ const MainPage = () => {
       </div>
       <div className="flex px-[2.4rem] gap-[1.2rem] py-[2rem]">
         <DropButton
-          label={location || '위치 선택'}
+          label={location?.name || location?.address || '위치 선택'}
           onClick={() => setOpenSheet('location')}
         />
         <DropButton
@@ -122,8 +204,26 @@ const MainPage = () => {
               <BottomSheet.Content>
                 <RadioContent
                   value={sortType}
-                  onChange={(next) => {
-                    setSortType(next);
+                  onChange={async (next) => {
+                    if (next === 'near') {
+                      try {
+                        const nextCurrentLocation =
+                          currentLocation ?? (await loadCurrentLocation());
+                        setCurrentLocation(nextCurrentLocation);
+                        setLocation(nextCurrentLocation);
+                        setSortType('near');
+                      } catch (error) {
+                        window.alert(
+                          error instanceof Error
+                            ? error.message
+                            : '현재 위치를 가져오지 못했습니다.',
+                        );
+                        return;
+                      }
+                    } else {
+                      setSortType('latest');
+                    }
+
                     setOpenSheet(null);
                   }}
                 />
