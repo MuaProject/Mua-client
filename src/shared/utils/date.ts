@@ -15,3 +15,35 @@ export function generateFutureDates(days = 30) {
 
   return result;
 }
+
+export const formatDate = (date: string) =>
+  new Date(date).toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true,
+  });
+
+export const formatRelativeTime = (date: string) => {
+  const diffMs = new Date(date).getTime() - Date.now();
+  const rtf = new Intl.RelativeTimeFormat('ko', { numeric: 'auto' });
+  const diffMinutes = Math.round(diffMs / (1000 * 60));
+
+  if (Math.abs(diffMinutes) < 60) {
+    return rtf.format(diffMinutes, 'minute');
+  }
+
+  const diffHours = Math.round(diffMinutes / 60);
+  if (Math.abs(diffHours) < 24) {
+    return rtf.format(diffHours, 'hour');
+  }
+
+  const diffDays = Math.round(diffHours / 24);
+  if (Math.abs(diffDays) < 7) {
+    return rtf.format(diffDays, 'day');
+  }
+
+  return formatDate(date);
+};

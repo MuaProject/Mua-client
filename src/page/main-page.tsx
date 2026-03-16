@@ -7,75 +7,106 @@ import BottomSheet from '@widgets/main/bottom-sheet/bottom-sheet';
 import { BottomSheetLocationSearch } from '@widgets/main/bottom-sheet/contents/bottom-sheet-location-search';
 import { RadioContent } from '@widgets/main/bottom-sheet/contents/radio/radio-content';
 import { Card } from '@widgets/main/card/card';
-import { NotificationPanel } from '@widgets/main/notification/notificationPanel';
+import { NotificationPopover } from '@widgets/main/notification/notification-popover';
 import { useNavigate } from 'react-router-dom';
 import { FloatingActionButton } from '@shared/ui/floatingActionButton';
 import PlusIcon from '@shared/assets/icon/plus.svg?react';
+import { useQuery } from '@tanstack/react-query';
+import { FEED_QUERY_OPTIONS } from '@shared/api/domain/feeds/query';
+import { formatDate } from '@shared/utils/date';
+import type { LocationSelection } from '@features/location-picker/types';
+import { loadKakaoMap } from '@shared/lib/kakao-map/load-kakao-map';
 
 export type SortType = 'latest' | 'near';
 type SheetType = 'location' | 'sort' | null;
 
-const mockCards = [
-  {
-    id: 1,
-    image: 'https://via.placeholder.com/102x128',
-    title: '역삼동 공터에서 경도 할 사람 찾고 있어요!! (성인만)',
-    date: '01.01 / 13:40',
-    count: '1 / 20',
-    location: '개나리 공원',
-  },
-  {
-    id: 2,
-    image: 'https://via.placeholder.com/102x128',
-    title: '주말에 같이 운동하실 분 구합니다',
-    date: '01.02 / 10:00',
-    count: '3 / 10',
-    location: '역삼 체육관',
-  },
-  {
-    id: 3,
-    image: 'https://via.placeholder.com/102x128',
-    title: '역삼동 공터에서 경도 할 사람 찾고 있어요!! (성인만)',
-    date: '01.01 / 13:40',
-    count: '1 / 20',
-    location: '개나리 공원',
-  },
-  {
-    id: 4,
-    image: 'https://via.placeholder.com/102x128',
-    title: '역삼동 공터에서 경도 할 사람 찾고 있어요!! (성인만)',
-    date: '01.01 / 13:40',
-    count: '1 / 20',
-    location: '개나리 공원',
-  },
-  {
-    id: 5,
-    image: 'https://via.placeholder.com/102x128',
-    title: '역삼동 공터에서 경도 할 사람 찾고 있어요!! (성인만)',
-    date: '01.01 / 13:40',
-    count: '1 / 20',
-    location: '개나리 공원',
-  },
-];
-const mockNotifications = [
-  {
-    value:
-      '“역삼동 공터에서 경도하실 분 찾아요!” 게임에서 참가가 확정되었습니다.',
-    time: '방금 전',
-  },
-  {
-    value:
-      '“역삼동 공터에서 경도하실 분 찾아요!” 게임에서 참가가 확정되었습니다.',
-    time: '10분 전',
-  },
-];
-
 const MainPage = () => {
   const navigate = useNavigate();
-  const [location, setLocation] = useState('');
+  const [location, setLocation] = useState<LocationSelection | null>(null);
+  const [currentLocation, setCurrentLocation] =
+    useState<LocationSelection | null>(null);
   const [sortType, setSortType] = useState<SortType>('latest');
   const [openSheet, setOpenSheet] = useState<SheetType>(null);
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
+  const loadCurrentLocation = () =>
+    new Promise<LocationSelection>((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error('현재 위치를 지원하지 않는 환경입니다.'));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          try {
+            const kakao = await loadKakaoMap();
+            const geocoder = new kakao.maps.services.Geocoder();
+
+            geocoder.coord2Address(
+              position.coords.longitude,
+              position.coords.latitude,
+              (result: any[], status: string) => {
+                const address =
+                  status === kakao.maps.services.Status.OK
+                    ? result[0]?.road_address?.address_name ||
+                      result[0]?.address?.address_name ||
+                      '현재 위치'
+                    : '현재 위치';
+
+                resolve({
+                  name: address,
+                  address,
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                });
+              },
+            );
+          } catch {
+            resolve({
+              name: '현재 위치',
+              address: '현재 위치',
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          }
+        },
+        () => {
+          reject(
+            new Error(
+              '현재 위치를 가져오지 못했습니다. 브라우저 위치 권한을 확인해주세요.',
+            ),
+          );
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0,
+        },
+      );
+    });
+
+  const feedListQuery = FEED_QUERY_OPTIONS.LIST(
+    sortType === 'near'
+      ? currentLocation
+        ? {
+            sort: 'DISTANCE',
+            latitude: currentLocation.latitude,
+            longitude: currentLocation.longitude,
+          }
+        : undefined
+      : location
+        ? {
+            sort: 'LATEST',
+            latitude: location.latitude,
+            longitude: location.longitude,
+          }
+        : {
+            sort: 'LATEST',
+          },
+  );
+  const { data } = useQuery(feedListQuery);
+  if (!data) return null;
+
   return (
     <div>
       <TopNavigation
@@ -84,20 +115,10 @@ const MainPage = () => {
         onLeftClick={() => navigate('/my')}
         onRightClick={() => setIsNotificationOpen((prev) => !prev)}
       />
-      {isNotificationOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsNotificationOpen(false)}
-          />
-          <div
-            className="absolute right-[2.4rem] top-[5.6rem] z-50"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <NotificationPanel notifications={mockNotifications} />
-          </div>
-        </>
-      )}
+      <NotificationPopover
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+      />
       <div className="flex flex-col gap-[0.8rem] px-[2.4rem] pb-[0.4rem]">
         <span className="text-gray-600 typo-h3 h-[2.2rem]">
           오늘도 안전한 하루 되세요!
@@ -106,7 +127,7 @@ const MainPage = () => {
       </div>
       <div className="flex px-[2.4rem] gap-[1.2rem] py-[2rem]">
         <DropButton
-          label={location || '위치 선택'}
+          label={location?.name || location?.address || '위치 선택'}
           onClick={() => setOpenSheet('location')}
         />
         <DropButton
@@ -115,15 +136,15 @@ const MainPage = () => {
         />
       </div>
       <div className="flex flex-col gap-[2rem] items-center">
-        {mockCards.map((card) => (
+        {data.feeds!.map((feed) => (
           <Card
-            key={card.id}
-            image={card.image}
-            title={card.title}
-            date={card.date}
-            count={card.count}
-            location={card.location}
-            onClick={() => navigate(`/posts/${card.id}`)}
+            key={feed.feedId!}
+            image={feed.image!}
+            title={feed.title!}
+            date={formatDate(feed.playDate!)}
+            count={`${feed.playCount!}`}
+            location={feed.playGround!}
+            onClick={() => navigate(`/posts/${feed.feedId}`)}
           />
         ))}
       </div>
@@ -160,8 +181,26 @@ const MainPage = () => {
               <BottomSheet.Content>
                 <RadioContent
                   value={sortType}
-                  onChange={(next) => {
-                    setSortType(next);
+                  onChange={async (next) => {
+                    if (next === 'near') {
+                      try {
+                        const nextCurrentLocation =
+                          currentLocation ?? (await loadCurrentLocation());
+                        setCurrentLocation(nextCurrentLocation);
+                        setLocation(nextCurrentLocation);
+                        setSortType('near');
+                      } catch (error) {
+                        window.alert(
+                          error instanceof Error
+                            ? error.message
+                            : '현재 위치를 가져오지 못했습니다.',
+                        );
+                        return;
+                      }
+                    } else {
+                      setSortType('latest');
+                    }
+
                     setOpenSheet(null);
                   }}
                 />

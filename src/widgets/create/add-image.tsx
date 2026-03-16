@@ -5,9 +5,10 @@ import XIcon from '@shared/assets/icon/x.svg?react';
 interface AddImageProps {
   max?: number; // 최대 업로드 개수 (기본 5)
   disabled?: boolean;
+  onChange?: (file: File) => void;
 }
 
-export function AddImage({ max = 5, disabled }: AddImageProps) {
+export function AddImage({ max = 5, disabled, onChange }: AddImageProps) {
   const [images, setImages] = useState<string[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,6 +19,9 @@ export function AddImage({ max = 5, disabled }: AddImageProps) {
     const url = URL.createObjectURL(file);
 
     setImages((prev) => [...prev, url]);
+
+    onChange?.(file); // 🔥 부모로 file 전달
+
     e.target.value = '';
   };
 

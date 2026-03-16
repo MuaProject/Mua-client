@@ -23,8 +23,12 @@ export function Card({
       onClick={onClick}
       className="flex flex-low gap-[1.6rem] w-[32.7rem] h-[14.8rem] pb-[2rem] border-b border-gray-100"
     >
-      <div className="w-[10.2rem] h-[12.8rem] shrink-0 border rounded-[8px]">
-        <img src={image} />
+      <div className="w-[10.2rem] h-[12.8rem] shrink-0 overflow-hidden border rounded-[8px]">
+        <img
+          src={image}
+          alt={title}
+          className="h-full w-full object-cover"
+        />
       </div>
       <div className="flex flex-col gap-[1.2rem]">
         <CardTitle title={title} />
