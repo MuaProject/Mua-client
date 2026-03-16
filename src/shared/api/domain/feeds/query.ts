@@ -8,8 +8,18 @@ import type {
   GetFeedsResponse,
 } from '@shared/types/feeds/type';
 
-const getFeeds = async (): Promise<GetFeedsResponse> => {
-  return api.get(END_POINT.FEED.LIST).json<GetFeedsResponse>();
+interface GetFeedsParams extends Record<string, string | number | undefined> {
+  sort?: 'LATEST' | 'DISTANCE';
+  latitude?: number;
+  longitude?: number;
+}
+
+const getFeeds = async (params?: GetFeedsParams): Promise<GetFeedsResponse> => {
+  return api
+    .get(END_POINT.FEED.LIST, {
+      searchParams: params,
+    })
+    .json<GetFeedsResponse>();
 };
 
 const getFeedDetail = async (
@@ -23,10 +33,10 @@ const postFeed = async (body: CreateFeedRequest) => {
 };
 
 export const FEED_QUERY_OPTIONS = {
-  LIST: () =>
+  LIST: (params?: GetFeedsParams) =>
     queryOptions({
-      queryKey: FEED_QUERY_KEY.LIST(),
-      queryFn: getFeeds,
+      queryKey: FEED_QUERY_KEY.LIST(params),
+      queryFn: () => getFeeds(params),
     }),
   DETAIL: (feedId: number) =>
     queryOptions({

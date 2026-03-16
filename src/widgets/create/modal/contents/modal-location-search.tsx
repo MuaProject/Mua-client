@@ -1,10 +1,9 @@
-import { FloatingActionButton } from '@shared/ui/floatingActionButton';
-import Input from '@shared/ui/input';
-import LocationIcon from '@shared/assets/icon/material-symbols_my-location-outline-rounded.svg?react';
+import { LocationPicker } from '@features/location-picker/ui/location-picker';
+import type { LocationSelection } from '@features/location-picker/types';
 
 interface ModalLocationSearchProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: LocationSelection | null;
+  onChange: (value: LocationSelection) => void;
 }
 
 export function ModalLocationSearch({
@@ -12,17 +11,14 @@ export function ModalLocationSearch({
   onChange,
 }: ModalLocationSearchProps) {
   return (
-    <div className="flex items-center justify-center h-[9.2rem] gap-[0.8rem]">
-      <Input
-        inputSize={'ssm'}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="예) 역삼동"
-      />
-      <FloatingActionButton
-        mode="inline"
-        icon={<LocationIcon width="2rem" height="2rem" />}
-      />
-    </div>
+    <LocationPicker
+      value={value}
+      onChange={onChange}
+      inputSize="ssm"
+      inputPlaceholder="예) 역삼동"
+      containerClassName="flex flex-col gap-[1.2rem] px-[2.4rem] pb-[1.6rem]"
+      searchRowClassName="flex items-center gap-[0.8rem]"
+      mapClassName="relative h-[16rem] w-full overflow-hidden rounded-[16px] border border-gray-200"
+    />
   );
 }

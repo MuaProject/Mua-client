@@ -2,7 +2,7 @@ import {
   BottomSheetContext,
   useBottomSheetContext,
 } from '@shared/hooks/use-bottom-sheet-context';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { cva } from 'class-variance-authority';
 import { cn } from '@shared/utils/cn';
 
@@ -18,11 +18,25 @@ function Overlay() {
   return <div onClick={onClose} className="fixed inset-0 bg-black/30" />;
 }
 
+function BodyScrollLock() {
+  useEffect(() => {
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    document.body.style.overflow = 'hidden';
+
+    return () => {
+      document.body.style.overflow = originalStyle;
+    };
+  }, []);
+ 
+  return null;
+}
+
 function Root({ isOpen, onClose, children }: BottomSheetProps) {
   if (!isOpen) return null;
 
   return (
     <BottomSheetContext.Provider value={{ onClose }}>
+      <BodyScrollLock />
       <div className="fixed inset-0 z-40">{children}</div>
     </BottomSheetContext.Provider>
   );

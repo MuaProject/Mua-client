@@ -17,6 +17,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { FEED_MUTATION_OPTIONS } from '@shared/api/domain/feeds/query'; // 네가 만든 위치
 import { FEED_QUERY_KEY } from '@shared/api/query-key';
 import { getPresignedUpload } from '@shared/api/domain/controller/query';
+import type { LocationSelection } from '@features/location-picker/types';
 type CreateModalType = 'location' | 'datetime' | null;
 
 const CreatPage = () => {
@@ -27,8 +28,10 @@ const CreatPage = () => {
   const [time, setTime] = useState('');
   const [openModal, setOpenModal] = useState<CreateModalType>(null);
   const navigate = useNavigate();
-  const [location, setLocation] = useState<string>(''); // 최종 확정 값
-  const [tempLocation, setTempLocation] = useState<string>(''); // 모달용 임시 값
+  const [location, setLocation] = useState<LocationSelection | null>(null);
+  const [tempLocation, setTempLocation] = useState<LocationSelection | null>(
+    null,
+  );
   const [dateTime, setDateTime] = useState<{
     dateText: string;
     hour: string;
@@ -120,13 +123,12 @@ const CreatPage = () => {
       />
       <ModalButton
         label="장소"
+        value={location?.name || location?.address}
         placeholder={
-          location || (
-            <span className="flex gap-[0.8rem]">
-              <MapPingIcon width="2.4rem" height="2.4rem" />
-              클릭하여 장소 선택
-            </span>
-          )
+          <span className="flex gap-[0.8rem]">
+            <MapPingIcon width="2.4rem" height="2.4rem" />
+            클릭하여 장소 선택
+          </span>
         }
         onClick={() => {
           setTempLocation(location);
@@ -136,11 +138,12 @@ const CreatPage = () => {
 
       <ModalButton
         label="일시"
-        placeholder={
+        value={
           dateTime
             ? `${dateTime.dateText} ${dateTime.hour}:${dateTime.minute}`
-            : '날짜 입력'
+            : undefined
         }
+        placeholder="날짜 입력"
         onClick={() => setOpenModal('datetime')}
       />
       <div className=" flex flex-col gap-[0.8rem] px-[2.4rem]">
@@ -174,15 +177,15 @@ const CreatPage = () => {
             mutate({
               title,
               description: text,
-              playGround: location,
+              playGround: location.name || location.address,
               playDate: isoDate,
               playCount: parseInt(count.replace(/\D/g, ''), 10),
               round: parseInt(round.replace(/\D/g, ''), 10),
               timer: parseInt(time.replace(/\D/g, ''), 10),
               image: imageUrl,
-              address: location,
-              latitude: 37.5665,
-              longitude: 126.978,
+              address: location.address,
+              latitude: location.latitude,
+              longitude: location.longitude,
             });
           }}
         >
