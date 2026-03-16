@@ -15,7 +15,7 @@ export function DetailInfo({
   writerNickname,
 }: DetailInfoProps) {
   return (
-    <div className="flex w-[32.7rem] gap-[2rem] flex-col border-b py-[2rem]">
+    <div className="flex w-full max-w-[32.7rem] gap-[2rem] flex-col border-b py-[2rem]">
       <div className="flex gap-[0.8rem]">
         <img className="w-[4.8rem] h-[4.8rem] rounded-full border" />
         <div className="flex flex-col">

@@ -146,14 +146,16 @@ const PostDetailPage = () => {
       </p>
 
       {/* 🔥 상세 정보 */}
-      <div className="flex items-center flex-col px-[2.4rem] justify-center">
+      <div className="flex w-full items-center flex-col px-[2.4rem] justify-center">
         <DetailInfo
           playDate={data.playDate}
           playCount={data.playCount}
           location={data.playGround}
           writerNickname={data.writer?.nickname}
         />
-        <p className="flex typo-body1 py-[2rem] border-b">{data.description}</p>
+        <p className="w-full max-w-[32.7rem] typo-body1 py-[2rem] border-b">
+          {data.description}
+        </p>
       </div>
 
       <div className="px-[2.4rem] py-[2rem] border-b">
@@ -198,7 +200,7 @@ const PostDetailPage = () => {
           </div>
         )}
 
-        <div className="flex w-full gap-[1.6rem]">
+        <div className="flex w-full gap-[1.6rem] items-center">
           <Input
             inputSize="sm"
             placeholder="댓글을 입력해주세요"
