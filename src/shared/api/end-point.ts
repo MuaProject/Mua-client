@@ -14,4 +14,7 @@ export const END_POINT = {
   S3: {
     PRESIGNED_UPLOAD: 'api/s3/presigned-upload',
   },
+  NOTIFICATION: {
+    LIST: 'api/notifications',
+  },
 } as const;

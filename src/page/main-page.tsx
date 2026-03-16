@@ -7,7 +7,7 @@ import BottomSheet from '@widgets/main/bottom-sheet/bottom-sheet';
 import { BottomSheetLocationSearch } from '@widgets/main/bottom-sheet/contents/bottom-sheet-location-search';
 import { RadioContent } from '@widgets/main/bottom-sheet/contents/radio/radio-content';
 import { Card } from '@widgets/main/card/card';
-import { NotificationPanel } from '@widgets/main/notification/notificationPanel';
+import { NotificationPopover } from '@widgets/main/notification/notification-popover';
 import { useNavigate } from 'react-router-dom';
 import { FloatingActionButton } from '@shared/ui/floatingActionButton';
 import PlusIcon from '@shared/assets/icon/plus.svg?react';
@@ -19,19 +19,6 @@ import { loadKakaoMap } from '@shared/lib/kakao-map/load-kakao-map';
 
 export type SortType = 'latest' | 'near';
 type SheetType = 'location' | 'sort' | null;
-
-const mockNotifications = [
-  {
-    value:
-      '“역삼동 공터에서 경도하실 분 찾아요!” 게임에서 참가가 확정되었습니다.',
-    time: '방금 전',
-  },
-  {
-    value:
-      '“역삼동 공터에서 경도하실 분 찾아요!” 게임에서 참가가 확정되었습니다.',
-    time: '10분 전',
-  },
-];
 
 const MainPage = () => {
   const navigate = useNavigate();
@@ -128,20 +115,10 @@ const MainPage = () => {
         onLeftClick={() => navigate('/my')}
         onRightClick={() => setIsNotificationOpen((prev) => !prev)}
       />
-      {isNotificationOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsNotificationOpen(false)}
-          />
-          <div
-            className="absolute right-[2.4rem] top-[5.6rem] z-50"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <NotificationPanel notifications={mockNotifications} />
-          </div>
-        </>
-      )}
+      <NotificationPopover
+        isOpen={isNotificationOpen}
+        onClose={() => setIsNotificationOpen(false)}
+      />
       <div className="flex flex-col gap-[0.8rem] px-[2.4rem] pb-[0.4rem]">
         <span className="text-gray-600 typo-h3 h-[2.2rem]">
           오늘도 안전한 하루 되세요!

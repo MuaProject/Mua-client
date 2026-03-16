@@ -1,5 +1,6 @@
 import ChevronRightIcon from '@shared/assets/icon/chevron-right.svg?react';
 export interface NotificationCardProps {
+  id: number;
   value: string;
   time: string;
 }
