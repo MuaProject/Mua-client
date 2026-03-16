@@ -119,6 +119,7 @@ const PostDetailPage = () => {
   if (!data) return <div>no data</div>;
 
   const myId = getMyMemberId();
+  const imageSrc = data.image && data.image !== 'undefined' ? data.image : null;
 
   const isOwner = data.writer?.writerId === myId;
   const isApplied = participants?.some((p) => p.applicantId === myId) ?? false;
@@ -137,7 +138,13 @@ const PostDetailPage = () => {
 
       {/* 🔥 이미지 */}
       <Carousel>
-        <img src={data.image} alt="" />
+        {imageSrc ? (
+          <img src={imageSrc} alt={data.title ?? ''} className="h-full w-full object-cover" />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-400 typo-body2">
+            이미지 없음
+          </div>
+        )}
       </Carousel>
 
       {/* 🔥 제목 */}
